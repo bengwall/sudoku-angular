@@ -1,17 +1,22 @@
 export class Cell {
   value?: number;
   possibleValues: number[];
-  groups: CellGroup[];
+  relatedCells: Cell[];
+  row: number;
+  col: number;
 
-  constructor() {
+  constructor(row, col) {
     this.possibleValues = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    this.relatedCells = new Array<Cell>(); // 24 related cells
+    this.row = row;
+    this.col = col;
+  }
 
-    // create the 3 groups for this cell (column, row, quad)
-    this.groups = Array<CellGroup>();
-    for (let i = 0; i <= 2; i++) {
-      const cellGroup = new CellGroup();
-      this.groups.push(cellGroup);
-    }
+  setValue(value) {
+    this.value = value;
+    this.possibleValues = [];
+    this.removeValueFromRelatedCells(value);
+    console.log(`Setting value (${this.row},${this.col}) = ${value}`);
   }
 
   removePossibleValue(value) {
@@ -21,13 +26,10 @@ export class Cell {
     return true;
   }
 
-}
-
-export class CellGroup {
-  cells: Cell[];
-
-  constructor() {
-    this.cells = new Array<Cell>();
+  removeValueFromRelatedCells(value) {
+    this.relatedCells.forEach(cell => {
+      cell.removePossibleValue(value);
+    });
   }
 }
 
@@ -45,7 +47,7 @@ export class Board {
     this.positions.forEach(row => {
       this.cells.push([]);
       this.positions.forEach(col => {
-        this.cells[row].push(new Cell());
+        this.cells[row].push(new Cell(row, col));
       });
     });
 
@@ -54,28 +56,25 @@ export class Board {
       this.positions.forEach(col => {
         const cell = this.cells[row][col];
 
-        // create the 3 groups for this cell (column, row, quad)
-        const rowGroup = cell.groups[0];
+        // add refeference to associated cells in the 3 groups for this cell (column, row, quad)
         this.positions.forEach(iCol => {
           if (iCol !== col) {
-            rowGroup.cells.push(this.cells[row][iCol]);
+            cell.relatedCells.push(this.cells[row][iCol]);
           }
         });
 
-        const colGroup = cell.groups[1];
         this.positions.forEach(iRow => {
           if (iRow !== row) {
-            colGroup.cells.push(this.cells[iRow][col]);
+            cell.relatedCells.push(this.cells[iRow][col]);
           }
         });
 
-        const quadGroup = cell.groups[2];
         const quadRow = Math.floor(row / 3) * 3;
         const quadCol = Math.floor(col / 3) * 3;
         for (let iRow = quadRow; iRow <= quadRow + 2; iRow++) {
           for (let iCol = quadCol; iCol <= quadCol + 2; iCol++) {
             if (!(iCol === col && iRow === row)) {
-              quadGroup.cells.push(this.cells[iRow][iCol]);
+              cell.relatedCells.push(this.cells[iRow][iCol]);
             }
           }
         }
@@ -87,45 +86,59 @@ export class Board {
 
   solve() {
     this.solved = false;
-    while (!this.solved) {
+
+    // update possible values of all cells based on starting cell values
+    this.cells.forEach(cellRow =>
+      cellRow.forEach(cell => {
+        if (cell.value != null) {
+          cell.setValue(cell.value);
+        }
+      })
+    );
+
+    let finished = false;
+    while (!finished) {
       let processedSomething = false;
-      this.positions.forEach(row => {
-        this.positions.forEach(col => {
-          const cell = this.cells[row][col];
+      this.cells.forEach(cellRow => {
+        cellRow.forEach(cell => {
 
           if (cell.value == null) {
-            cell.groups.forEach(group => {
-
-              group.cells.forEach(groupCell => {
-                // if the groupCell has a value, then remove that value from the cell.remainingValues
-                if (groupCell.value) {
-                  if (cell.removePossibleValue(groupCell.value)) {
-                    processedSomething = true;
-                    if (cell.possibleValues.length === 1) {
-                      cell.value = cell.possibleValues[0];
-                    }
-                  }
-                }
-              });
-
-            });
+            if (cell.possibleValues.length === 1) {
+              processedSomething = true;
+              cell.setValue(cell.possibleValues[0]);
+            }
           }
 
         });
       });
       // if we make it through all cells and have done anything, then we are stuck or done
-      this.solved = !processedSomething;
+      finished = !processedSomething;
     }
+
+    // update possible values of all cells based on starting cell values
+    this.solved = true;
+    this.cells.forEach(cellRow =>
+      cellRow.forEach(cell => {
+        if (cell.value == null) { this.solved = false; }
+      })
+    );
     return this.solved;
   }
 
   logBoard() {
-    this.positions.forEach(row => {
-      this.positions.forEach(col => {
-        const cell = this.cells[row][col];
-        console.log(`row: ${row}  col: ${col}  value: ${cell.value}`);
+    this.cells.forEach(cellRow => {
+      let str = '';
+      cellRow.forEach(cell => {
+        str = str + (cell.value || '_') + ' ';
       });
+      console.log(str);
     });
+
+    this.cells.forEach(cellRow => {
+      cellRow.forEach(cell => {
+        console.log(`(${cell.row},${cell.col}) = ${cell.value} - Possible values: ${cell.possibleValues}`);
+      });
+    }); \
   }
 
   initTestBoard1() {
