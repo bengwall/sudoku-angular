@@ -1,15 +1,37 @@
-<div fxLayout="row" fxFlex>
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <span>Sudoku Solver</span>
+  </mat-toolbar-row>
+</mat-toolbar>
 
-  <mat-toolbar color="primary">
-    <mat-toolbar-row>
-      <span>Sudoku Solver</span>
-    </mat-toolbar-row>
-  </mat-toolbar>
+<mat-card>
+  <mat-card-title>
+    Puzzle
+  </mat-card-title>
+  <form #f="ngForm" (ngSubmit)="f.valid && onSubmit()" novalidate autocomplete="off">
+    <mat-card-content>
+      <table>
+        <tr *ngFor="let rowCells of board.cells; let iRow=index">
+          <td *ngFor="let cell of rowCells; let iCol=index">
+            <input matInput name="cellInput_{{iRow}}_{{iCol}}" [(ngModel)]="cell.value" size="1" maxlength="1"
+              #cellInput="ngModel" type="number" class="cell-input" [ngClass]="{ 'is-invalid': f.submitted && cellInput.invalid }">
+          </td>
+        </tr>
+      </table>
 
+      <!--
+      <mat-grid-list *ngFor="let rowCells of board.cells; let iRow=index" cols="9" rowHeight="30px" gutterSize="5px">
+        <mat-grid-tile *ngFor="let cell of rowCells; let iCol=index">
+        </mat-grid-tile>
+      </mat-grid-list>
+      -->
 
-
-  <button mat-fab (click)="openAdminDialog()" class="fab-bottom-right">
-    <mat-icon>add</mat-icon>
-  </button>
-
-</div>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button type="submit" [disabled]="!f.valid" color="primary">Solve</button>
+      <button mat-raised-button type="button" (click)="onClear()">Clear</button>
+    </mat-card-actions>
+    {{board.solved}}<br>
+    <div *ngIf="board.solved">Board is solved</div>
+  </form>
+</mat-card>

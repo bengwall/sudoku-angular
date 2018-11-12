@@ -20,16 +20,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'sudoku-ngxs'`, () => {
+  it(`should have as title 'sudoku-solver'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.debugElement.componentInstance;
-    expect(app.title).toEqual('sudoku-ngxs');
+    expect(app.title).toEqual('sudoku-solver');
   });
 
   it('should render title in a h1 tag', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('h1').textContent).toContain('Welcome to sudoku-ngxs!');
+    expect(compiled.querySelector('h1').textContent).toContain('Welcome to sudoku-solver!');
   });
 });

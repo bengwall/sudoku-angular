@@ -13,6 +13,14 @@ export class Cell {
       this.groups.push(cellGroup);
     }
   }
+
+  removePossibleValue(value) {
+    const idx = this.possibleValues.indexOf(value);
+    if (idx === -1) { return false; }
+    this.possibleValues.splice(idx, 1);
+    return true;
+  }
+
 }
 
 export class CellGroup {
@@ -26,11 +34,12 @@ export class CellGroup {
 export class Board {
   cells: Cell[][];
   positions: number[];
+  solved: boolean;
 
   constructor() {
     this.cells = new Array<Array<Cell>>();
-
     this.positions = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    this.solved = false;
 
     // create all cells.
     this.positions.forEach(row => {
@@ -77,8 +86,8 @@ export class Board {
   }
 
   solve() {
-    let solved = false;
-    while (!solved) {
+    this.solved = false;
+    while (!this.solved) {
       let processedSomething = false;
       this.positions.forEach(row => {
         this.positions.forEach(col => {
@@ -90,9 +99,7 @@ export class Board {
               group.cells.forEach(groupCell => {
                 // if the groupCell has a value, then remove that value from the cell.remainingValues
                 if (groupCell.value) {
-                  const idx = cell.possibleValues.indexOf(groupCell.value);
-                  if (idx > -1) {
-                    cell.possibleValues.splice(idx, 1);
+                  if (cell.removePossibleValue(groupCell.value)) {
                     processedSomething = true;
                     if (cell.possibleValues.length === 1) {
                       cell.value = cell.possibleValues[0];
@@ -107,12 +114,21 @@ export class Board {
         });
       });
       // if we make it through all cells and have done anything, then we are stuck or done
-      solved = !processedSomething;
+      this.solved = !processedSomething;
     }
-    return solved;
+    return this.solved;
   }
 
-  initTestBoard() {
+  logBoard() {
+    this.positions.forEach(row => {
+      this.positions.forEach(col => {
+        const cell = this.cells[row][col];
+        console.log(`row: ${row}  col: ${col}  value: ${cell.value}`);
+      });
+    });
+  }
+
+  initTestBoard1() {
     this.cells[0][4].value = 9;
     this.cells[0][8].value = 3;
     this.cells[1][2].value = 3;
@@ -146,13 +162,35 @@ export class Board {
     this.cells[8][4].value = 8;
   }
 
-  logBoard() {
-    this.positions.forEach(row => {
-      this.positions.forEach(col => {
-        const cell = this.cells[row][col];
-        console.log(`row: ${row}  col: ${col}  value: ${cell.value}`);
-      });
-    });
+  initTestBoard2() {
+    this.cells[0][3].value = 8;
+    this.cells[0][6].value = 3;
+    this.cells[0][7].value = 2;
+    this.cells[1][2].value = 6;
+    this.cells[1][8].value = 5;
+    this.cells[2][0].value = 1;
+    this.cells[2][1].value = 8;
+    this.cells[2][3].value = 5;
+    this.cells[2][6].value = 9;
+
+    this.cells[3][1].value = 9;
+    this.cells[3][6].value = 5;
+    this.cells[4][0].value = 2;
+    this.cells[4][4].value = 8;
+    this.cells[4][8].value = 7;
+    this.cells[5][2].value = 4;
+    this.cells[5][7].value = 6;
+
+    this.cells[6][2].value = 1;
+    this.cells[6][5].value = 2;
+    this.cells[6][7].value = 3;
+    this.cells[6][8].value = 4;
+    this.cells[7][0].value = 9;
+    this.cells[7][6].value = 1;
+    this.cells[8][1].value = 7;
+    this.cells[8][2].value = 2;
+    this.cells[8][5].value = 6;
   }
+
 
 }
